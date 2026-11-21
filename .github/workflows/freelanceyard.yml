@@ -1,0 +1,46 @@
+name: Freelance Yard Telegram Bot
+
+on:
+  schedule:
+    # Runs every 15 minutes (safe rate limit & within GitHub Actions free tier)
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: freelanceyard-telegram-bot
+  cancel-in-progress: false
+
+jobs:
+  check-jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Freelance Yard scraper
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MAX_FIRST_RUN_SEND: "3"
+        run: python scraper.py
+
+      - name: Save seen jobs state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add seen_jobs.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update seen_jobs.json"
+            git push
+          fi
