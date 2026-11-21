@@ -3,7 +3,7 @@ name: Freelance Yard Telegram Bot
 on:
   schedule:
     # Runs every 15 minutes (safe rate limit & within GitHub Actions free tier)
-    - cron: "*/15 * * * *"
+    - cron: "7,22,37,52 * * * *"
   workflow_dispatch:
 
 permissions:
